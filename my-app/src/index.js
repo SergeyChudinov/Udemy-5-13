@@ -45,26 +45,26 @@ class App extends React.Component {
 }
 
 const App2 = (props) => {
-  const [counter, setConter] = useState(0)
-  const changeConter = (i) => {
+  const [counter, setCounter] = useState(0)
+  const changeCounter = (i) => {
     if (counter <= -50 || counter >= 50) {
       return
     }
-    setConter(counter => counter + i)
+    setCounter(counter => counter + i)
   }
   const rndCounter = () => {
     let random = Math.floor((Math.random() * 101) - 50);
-    setConter(random)
+    setCounter(random)
   }
   const resetCounter = () => {
-    setConter(0)
+    setCounter(0)
   }
   return (
     <div className='app'>
       <div className='counter'>{counter}</div>
       <div className='controls'>
-        <button onClick={() => changeConter(1)}>INC</button>
-        <button onClick={() => changeConter(-1)}>DEC</button>
+        <button onClick={() => changeCounter(1)}>INC</button>
+        <button onClick={() => changeCounter(-1)}>DEC</button>
         <button onClick={rndCounter}>RND</button>
         <button onClick={resetCounter}>RESET</button>
       </div>
@@ -72,13 +72,85 @@ const App2 = (props) => {
   )
 }
 
+function useCounter(initial) {
+  const [counter, setCounter] = React.useState(initial);
 
-// ReactDOM.render(<App counter={0}/>, document.getElementById('app'));
+  // Это вариант с запросом, чтобы он нормально работал после активации - уберите все props,
+  // которые приходят в компонент + аргумент initial поменяйте на 0 или null
+
+  React.useEffect(() => {
+      fetch('https://www.random.org/integers/?num=1&min=-50&max=50&col=1&base=10&format=plain&rnd=new')
+          .then(res => res.text())
+          .then(res => setCounter(res))
+          .catch(err => console.log(err))
+  }, [])
+  const incCounter = () => {
+    if (counter < 50) {
+      setCounter(counter => counter + 1)
+    }
+  } 
+  const decCounter = () => {
+    if (counter > -50) {
+      setCounter(counter => counter - 1)
+    }
+  }
+  const rndCounter = () => {
+    setCounter(+(Math.random() * (50 - -50) + -50).toFixed(0))
+  }
+  const resetCounter = () => {
+    setCounter(initial)
+  }
+  return {
+    counter,
+    incCounter,
+    decCounter,
+    rndCounter,
+    resetCounter
+  }
+}
+const Counter = (props) => {
+  const {counter, incCounter, decCounter, rndCounter, resetCounter} = useCounter(0);
+
+  return (
+    <div className="app">
+      <div className="counter">{counter}</div>
+      <div className="controls">
+        <button onClick={incCounter}>INC</button>
+        <button onClick={decCounter}>DEC</button>
+        <button onClick={rndCounter}>RND</button>
+        <button onClick={resetCounter}>RESET</button>
+      </div>
+    </div>
+  )
+}
+const RndCounter = (props) => {
+  const {counter, rndCounter, resetCounter} = useCounter(0);
+  return (
+    <div className="app">
+      <div className="counter">{counter}</div>
+      <div className="controls">
+        <button onClick={rndCounter}>RND</button>
+        <button onClick={resetCounter}>RESET</button>
+      </div>
+    </div>
+  )
+}
+
+const App3 = () => { // counter={0} counter={5}
+  return (
+      <>
+          <Counter/>
+          <RndCounter/> 
+      </>
+  )
+}
+
 
 const root = ReactDOM.createRoot(document.getElementById('app'));
 root.render(
   <React.StrictMode>
-    <App counter={0}/>
-    <App2/>
+    {/* <App counter={0}/>
+    <App2/> */}
+    <App3/>
   </React.StrictMode>
 );
